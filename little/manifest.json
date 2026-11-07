@@ -1,0 +1,107 @@
+{
+  "id": "sundae-stack",
+  "title": "Sundae Stack",
+  "description": "A motion-controlled party game for kids and families: the viewer physically steps left and right in front of the TV to move a cartoon toddler who catches falling ice-cream scoops and toppings, dodges falling toys and finishes each sundae with a cherry. Launch when the viewer wants an active/moving game, a game for kids, something silly to play with their body, an ice-cream or sundae game, or 'Sundae Stack'. It can also be played with the remote's arrow keys.",
+  "url": "http://127.0.0.1:7143",
+  "launchSchema": {
+    "type": "object",
+    "description": "Optional. Omit everything to open the menu.",
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": ["camera", "keyboard"],
+        "description": "Start a round right away. \"camera\" when the viewer wants to play by moving their body (it begins with a short camera setup); \"keyboard\" when they want to use the remote's arrow keys."
+      }
+    },
+    "additionalProperties": false
+  },
+  "guide": "You are the cheerful announcer for Sundae Stack, a 60-second motion game. The player steps left and right to move a toddler holding a sundae bowl: scoops add 10 points to the current sundae, toppings add 5, a cherry (offered once the sundae has 3 scoops) serves the sundae and banks its points plus a 25-point bonus, three different scoop flavors make a Rainbow Sundae (+30). Catching a falling toy spills the sundae: its pending points are lost and one of three bowls is used up; banked points stay. The round ends after 60 seconds of play or three spills. Read the HUD readouts (Banked score, This sundae, Time left, Spills left) instead of guessing, or call get_game_status. Keep narration short and encouraging, and never talk over the countdown. During play the player is moving, so only call tools they ask for: pause, resume, restart, toggle_sound, recalibrate. Camera setup needs the player to physically stand centre, step left, then step right; you cannot do it for them, but you may call skip_calibration if they ask to skip it, and confirm_calibration when they say they're ready on the 'Try it out' step. If tracking freezes the game, tell them to step back into view: nothing is lost while frozen. Events tell you when a sundae is served, spilled, a Rainbow Sundae happens, tracking is lost or restored, and when the round ends.",
+  "capabilities": [
+    { "name": "sense.pose", "reason": "Step left and right to move the toddler. Little only shares body points with the game, never video." },
+    { "name": "media.camera", "reason": "Track your steps if body points aren't available. The picture is processed on this TV and never leaves it." }
+  ],
+  "tools": [
+    {
+      "name": "start_game",
+      "description": "Start a new round of Sundae Stack. Use mode \"camera\" when the viewer wants to play by moving (a short camera setup runs first the first time), \"keyboard\" when they want to use the remote's arrow keys. Omit mode to reuse the last one.",
+      "authority": "mutate",
+      "params": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string", "enum": ["camera", "keyboard"], "description": "How the player moves the toddler." }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "pause",
+      "description": "Pause the current round (freezes the timer and everything falling). Call when the viewer asks to pause or stop for a moment.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "resume",
+      "description": "Resume a paused round. Play continues after a 3-second countdown.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "restart",
+      "description": "Start the round over from zero: empty bowl, clean face, full timer, three bowls, score 0. Also 'play again' on the results screen.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "recalibrate",
+      "description": "Redo the camera setup (stand centre, step left, step right), e.g. when the toddler doesn't follow the player well or they moved to another spot in the room. A round in progress stays paused and continues afterwards.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "confirm_calibration",
+      "description": "Finish camera setup and start playing. Only works on the 'Try it out' step, after the player has recorded centre, left and right.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "redo_calibration",
+      "description": "Restart the camera setup from the first step (stand in the middle).",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "skip_calibration",
+      "description": "Skip recording left/right and use a default movement range around where the player stands now. Call only when the viewer asks to skip setup.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "toggle_sound",
+      "description": "Turn the game's sound effects on or off. Pass on=true/false when the viewer says which; omit to flip.",
+      "authority": "mutate",
+      "params": {
+        "type": "object",
+        "properties": { "on": { "type": "boolean", "description": "true = sound on, false = muted." } },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "show_results",
+      "description": "Show the results of the last finished round: final score, best score and a picture of every sundae served.",
+      "authority": "read",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "back_to_menu",
+      "description": "Leave the current round or screen and go back to the Sundae Stack main menu.",
+      "authority": "mutate",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "get_game_status",
+      "description": "Read the live game state as JSON: screen, mode, paused, banked score, pending sundae points, seconds left, spills left, scoops and flavors in the current sundae, Rainbow bonus, whether a cherry is falling, sundaes served, tracking status and best score. Use it to answer questions like 'how am I doing?' or 'how much time is left?'.",
+      "authority": "read",
+      "params": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ]
+}
