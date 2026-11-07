@@ -62,9 +62,13 @@ export default function SundaeApp() {
     const up = (e: KeyboardEvent) => {
       if (runner.key(e, false)) e.preventDefault();
     };
-    const blur = () => runner.setAway("page", true);
-    const focus = () => runner.setAway("page", document.visibilityState !== "visible");
-    const vis = () => runner.setAway("page", document.visibilityState !== "visible" || !document.hasFocus());
+    // Inside Little the host reports pause/visibility itself, and its own overlays may take
+    // window focus while the game is still on screen, so focus only counts in a plain browser.
+    const away = (focused: boolean) =>
+      runner.setAway("page", document.visibilityState !== "visible" || (!focused && !runner.store.get().hosted));
+    const blur = () => away(false);
+    const focus = () => away(true);
+    const vis = () => away(document.hasFocus());
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     window.addEventListener("blur", blur);
@@ -80,7 +84,7 @@ export default function SundaeApp() {
   }, [runner]);
 
   const navEnabled = ui.screen !== "game" || ui.paused;
-  useRemoteNav(stageRef, navEnabled, `${ui.screen}:${ui.paused}:${ui.calibration.step}`);
+  useRemoteNav(stageRef, navEnabled, `${ui.screen}:${ui.paused}:${ui.calibration.step}:${!!ui.tracking.error}`);
 
   return (
     <FitStage ref={stageRef}>

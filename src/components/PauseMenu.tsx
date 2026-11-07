@@ -52,7 +52,7 @@ export function PauseMenu({
           <TvButton tone="cream" size="md" action="restart" label="Restart round" onClick={onRestart}>
             <RotateCcw strokeWidth={2.5} /> Restart
           </TvButton>
-          <TvButton tone="cream" size="md" action="toggle_sound" label={sound ? "Sound on (turn off)" : "Sound off (turn on)"} littleData={{ on: sound }} onClick={onSound}>
+          <TvButton tone="cream" size="md" action="toggle_sound" label={sound ? "Sound on (turn off)" : "Sound off (turn on)"} littleData={{ on: !sound }} onClick={onSound}>
             {sound ? <Volume2 strokeWidth={2.5} /> : <VolumeX strokeWidth={2.5} />} Sound {sound ? "on" : "off"}
           </TvButton>
           <TvButton tone="cream" size="md" className="col-span-2" action="back_to_menu" label="Quit to menu" onClick={onMenu}>

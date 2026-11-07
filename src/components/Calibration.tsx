@@ -98,15 +98,23 @@ export function Calibration({
               <Check strokeWidth={3} /> Start game
             </TvButton>
           )}
-          <TvButton tone="cream" size="md" action="redo_calibration" littleId="redo_calibration" label="Redo setup" onClick={onRedo} data-primary={ready ? undefined : ""}>
-            <RotateCcw strokeWidth={2.5} /> Redo
+          <TvButton
+            tone="cream"
+            size="md"
+            action="redo_calibration"
+            littleId="redo_calibration"
+            label={tracking.error ? "Try the camera again" : "Redo setup"}
+            onClick={onRedo}
+            data-primary={ready || tracking.error ? undefined : ""}
+          >
+            <RotateCcw strokeWidth={2.5} /> {tracking.error ? "Try again" : "Redo"}
           </TvButton>
-          {!ready && (
+          {!ready && !tracking.error && (
             <TvButton tone="cream" size="md" action="skip_calibration" littleId="skip_calibration" label="Skip setup (use a default range)" onClick={onSkip}>
               <SkipForward strokeWidth={2.5} /> Skip
             </TvButton>
           )}
-          <TvButton tone="mint" size="md" action="start_game" littleId="play_keyboard" label="Play with Arrow Keys instead" littleData={{ mode: "keyboard" }} onClick={onKeyboard}>
+          <TvButton tone="mint" size="md" action="start_game" littleId="play_keyboard" label="Play with Arrow Keys instead" littleData={{ mode: "keyboard" }} onClick={onKeyboard} data-primary={tracking.error ? "" : undefined}>
             <Keyboard strokeWidth={2.5} /> Keys instead
           </TvButton>
         </div>

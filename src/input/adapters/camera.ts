@@ -8,12 +8,31 @@ export interface CameraHandle {
 }
 
 const CONSTRAINTS = { width: 640, height: 480, fps: 30 };
+const OPEN_TIMEOUT_MS = 12_000;
+
+/** Rejects if `p` hasn't settled in time (a camera prompt nobody answers, a host without a device). */
+export function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(message)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
 
 /** Little's governed camera when granted; plain getUserMedia otherwise (local dev, browsers). */
 export async function openCamera(): Promise<CameraHandle> {
   const app = littleApp();
   if (app && isHosted() && can("media.camera")) {
-    const grant = await app.media.camera({ facing: "user", ...CONSTRAINTS });
+    const grant = await withTimeout(app.media.camera({ facing: "user", ...CONSTRAINTS }), OPEN_TIMEOUT_MS, "The camera didn't start.");
+    console.info("[sundae] Little camera:", grant.ok ? "granted" : grant.error?.code);
     if (grant.ok) {
       let stopped = false;
       return {
@@ -31,7 +50,7 @@ export async function openCamera(): Promise<CameraHandle> {
   }
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("This browser can't open a camera.");
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    const stream = await withTimeout(navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: "user",
         width: { ideal: CONSTRAINTS.width },
@@ -39,7 +58,7 @@ export async function openCamera(): Promise<CameraHandle> {
         frameRate: { ideal: CONSTRAINTS.fps },
       },
       audio: false,
-    });
+    }), OPEN_TIMEOUT_MS, "The camera didn't start.");
     let stopped = false;
     return {
       stream,
@@ -51,6 +70,7 @@ export async function openCamera(): Promise<CameraHandle> {
       },
     };
   } catch (err) {
+    if (err instanceof Error && !(err instanceof DOMException)) throw err;
     const name = err instanceof DOMException ? err.name : "";
     if (name === "NotAllowedError") throw new Error("Camera permission was declined.");
     if (name === "NotFoundError" || name === "OverconstrainedError") throw new Error("No camera found.");

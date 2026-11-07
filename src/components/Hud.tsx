@@ -82,7 +82,7 @@ export function Hud({ hud, sound, onPause, onSound }: { hud: HudState; sound: bo
             tone="cream"
             action="toggle_sound"
             label={sound ? "Sound on (turn off)" : "Sound off (turn on)"}
-            littleData={{ on: sound }}
+            littleData={{ on: !sound }}
             aria-label={sound ? "Turn sound off" : "Turn sound on"}
             onClick={onSound}
           >

@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fredoka.variable} antialiased`}>
+    <html lang="en" className={`${fredoka.variable} antialiased`} suppressHydrationWarning>
       <body className="font-sans">{children}</body>
     </html>
   );

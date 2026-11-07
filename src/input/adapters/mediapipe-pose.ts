@@ -1,6 +1,6 @@
 import type { NormalizedLandmark, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { hipMidpoint, mirrorX } from "../mapping";
-import { openCamera, type CameraHandle } from "./camera";
+import { openCamera, withTimeout, type CameraHandle } from "./camera";
 import type { PoseInputAdapter, PoseSample, PreviewPoint } from "./types";
 
 const VERSION = "1.2.2";
@@ -107,7 +107,14 @@ export class MediaPipePoseAdapter implements PoseInputAdapter {
   async start(onSample: (sample: PoseSample) => void): Promise<void> {
     this.stop();
     this.running = true;
-    const [camera, landmarker] = await Promise.all([openCamera(), loadLandmarker()]);
+    const [cam, lm] = await Promise.allSettled([openCamera(), loadLandmarker()]);
+    if (cam.status === "rejected" || lm.status === "rejected") {
+      if (cam.status === "fulfilled") cam.value.stop();
+      throw cam.status === "rejected" ? cam.reason : lm.status === "rejected" ? lm.reason : new Error("Body tracking failed.");
+    }
+    const camera = cam.value;
+    const landmarker = lm.value;
+    console.info("[sundae] MediaPipe ready, camera from", camera.source);
     if (!this.running) {
       camera.stop();
       return;
@@ -117,7 +124,7 @@ export class MediaPipePoseAdapter implements PoseInputAdapter {
     video.muted = true;
     video.playsInline = true;
     video.srcObject = camera.stream;
-    await video.play();
+    await withTimeout(video.play(), 8000, "The camera picture didn't start.");
     this.video = video;
 
     let lastFrameTime = -1;

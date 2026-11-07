@@ -57,7 +57,7 @@ export function Menu({
             className="flex-1"
             action="toggle_sound"
             label={sound ? "Sound on (turn off)" : "Sound off (turn on)"}
-            littleData={{ on: sound }}
+            littleData={{ on: !sound }}
             onClick={onSound}
           >
             {sound ? <Volume2 strokeWidth={2.5} /> : <VolumeX strokeWidth={2.5} />} Sound {sound ? "on" : "off"}

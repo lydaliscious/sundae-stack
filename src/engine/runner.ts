@@ -207,6 +207,10 @@ export class GameRunner {
 
   /** Skips the walk-through and uses a default range around where the player stands now. */
   skipCalibration(): ActionOutcome {
+    if (this.store.get().screen !== "calibrate") return { ok: false, detail: "Camera setup isn't open." };
+    if (this.store.get().tracking.error) {
+      return { ok: false, detail: "The camera isn't working, so there's nothing to steer with. Use redo_calibration to retry the camera, or start_game with mode keyboard." };
+    }
     const center = this.monitor.x ?? 0.5;
     this.calibration = defaultCalibration(center);
     this.flow.step = "test";
@@ -215,6 +219,8 @@ export class GameRunner {
   }
 
   redoCalibration(): ActionOutcome {
+    if (this.store.get().screen !== "calibrate") return { ok: false, detail: "Camera setup isn't open. Use recalibrate during a camera round." };
+    void this.ensureAdapter();
     this.flow.restart();
     this.calibration = null;
     this.store.set((s) => ({ calibration: { ...s.calibration, step: "center", progress: 0, usedDefault: false } }));
@@ -343,6 +349,12 @@ export class GameRunner {
       cherryFalling: ui.hud.cherryFalling,
       sundaesServed: ui.hud.served,
       tracking: ui.tracking.status,
+      trackingSource: ui.tracking.source,
+      trackingProblem: ui.tracking.problem,
+      trackingError: ui.tracking.error,
+      calibrationStep: ui.screen === "calibrate" ? ui.calibration.step : null,
+      onScreen: this.visible,
+      awayBecause: [...this.awaySources],
       best: ui.best,
     };
   }
@@ -426,7 +438,7 @@ export class GameRunner {
     this.adapterStart = null;
     this.lastSample = null;
     this.monitor.reset();
-    this.store.set((s) => ({ tracking: { ...s.tracking, status: "off", starting: false } }));
+    this.store.set((s) => ({ tracking: { ...s.tracking, status: "off", starting: false, error: null } }));
   }
 
   get previewVideo(): HTMLVideoElement | null {
