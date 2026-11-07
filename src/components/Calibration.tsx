@@ -12,7 +12,7 @@ const STEPS = [
   { id: "center", title: "Stand in the middle", body: "Face the TV and hold still for a moment." },
   { id: "left", title: "Take a comfy step left", body: "One easy step to your left, then hold still." },
   { id: "right", title: "Now a step right", body: "Step across to your right and hold still." },
-  { id: "test", title: "Try it out!", body: "Step around: the toddler follows you. Ready?" },
+  { id: "test", title: "Try it out!", body: "Step around: the toddler follows you." },
 ] as const;
 
 export function Calibration({
@@ -47,11 +47,11 @@ export function Calibration({
 
   return (
     <div className="absolute inset-0" data-little="region" data-little-label="Camera setup">
-      <div className="hud-card absolute top-[40px] left-[60px] w-[640px] p-5">
+      <div className="hud-card absolute top-[36px] left-[48px] w-[540px] p-5">
         <PosePreview runner={runner} />
         <div
           className={cn(
-            "mt-4 flex items-center gap-3 rounded-2xl px-5 py-3 text-[30px] font-semibold",
+            "mt-4 flex items-center gap-3 rounded-2xl px-5 py-2 text-[28px] font-semibold",
             tracking.status === "tracking" ? "bg-[#d9f6ea] text-[#24443a]" : "bg-[#ffe4ea] text-[#6b2337]",
           )}
           data-little="readout"
@@ -61,7 +61,7 @@ export function Calibration({
           <span className={cn("size-5 rounded-full", tracking.status === "tracking" ? "bg-[#3fbf8a]" : "bg-[#ff6f91]")} />
           {statusText}
         </div>
-        <p className="mt-3 text-[22px] text-[#8a6a70]">
+        <p className="mt-2 text-[20px] leading-snug text-[#8a6a70]">
           {tracking.source === "little-pose"
             ? "Little sends body points only; no video reaches this app."
             : "The camera picture stays on this device; only your hip position is used."}
@@ -69,7 +69,7 @@ export function Calibration({
       </div>
 
       <div
-        className="hud-card absolute top-[40px] right-[60px] w-[720px] px-10 py-8"
+        className="hud-card absolute top-[36px] right-[48px] w-[1000px] px-10 pt-7 pb-8"
         data-little="readout"
         data-little-label="Calibration step"
         data-little-data={JSON.stringify({ step: calibration.step, progress: Math.round(calibration.progress * 100) })}
@@ -79,28 +79,30 @@ export function Calibration({
             <div key={s.id} className={cn("h-[14px] flex-1 rounded-full", i < stepIndex ? "bg-[#7fd8b4]" : i === stepIndex ? "bg-[#ff5f8f]" : "bg-[#f0d9de]")} />
           ))}
         </div>
-        <div className="mt-5 text-[28px] font-semibold text-[#a8848a]">
+        <div className="mt-4 text-[26px] font-semibold text-[#a8848a]">
           STEP {stepIndex + 1} OF {STEPS.length}
         </div>
-        <div className="text-[60px] leading-tight font-bold">{step.title}</div>
-        <div className="mt-2 text-[34px]">{step.body}</div>
+        <div className="flex items-baseline gap-6">
+          <div className="text-[56px] leading-tight font-bold whitespace-nowrap">{step.title}</div>
+        </div>
+        <div className="mt-1 text-[32px]">{step.body}</div>
         {!ready && (
-          <div className="mt-6 h-[28px] overflow-hidden rounded-full border-[4px] border-[#5b3a3f] bg-white">
+          <div className="mt-5 h-[28px] overflow-hidden rounded-full border-[4px] border-[#5b3a3f] bg-white">
             <div className="h-full bg-[#ff5f8f] transition-[width] duration-100" style={{ width: `${calibration.progress * 100}%` }} />
           </div>
         )}
         {ready && <TestMeter unit={calibration.unit} usedDefault={calibration.usedDefault} />}
-        <div className="mt-7 flex flex-wrap gap-4">
+        <div className="mt-6 flex gap-4">
           {ready && (
-            <TvButton tone="candy" size="md" data-primary="" action="confirm_calibration" label="Start game" onClick={onStart}>
+            <TvButton tone="candy" size="md" data-primary="" action="confirm_calibration" littleId="confirm_calibration" label="Start game" onClick={onStart}>
               <Check strokeWidth={3} /> Start game
             </TvButton>
           )}
-          <TvButton tone="cream" size="md" action="redo_calibration" label="Redo setup" onClick={onRedo} data-primary={ready ? undefined : ""}>
+          <TvButton tone="cream" size="md" action="redo_calibration" littleId="redo_calibration" label="Redo setup" onClick={onRedo} data-primary={ready ? undefined : ""}>
             <RotateCcw strokeWidth={2.5} /> Redo
           </TvButton>
           {!ready && (
-            <TvButton tone="cream" size="md" action="skip_calibration" label="Skip setup (use a default range)" onClick={onSkip}>
+            <TvButton tone="cream" size="md" action="skip_calibration" littleId="skip_calibration" label="Skip setup (use a default range)" onClick={onSkip}>
               <SkipForward strokeWidth={2.5} /> Skip
             </TvButton>
           )}
@@ -115,7 +117,7 @@ export function Calibration({
 
 function TestMeter({ unit, usedDefault }: { unit: number; usedDefault: boolean }) {
   return (
-    <div className="mt-6">
+    <div className="mt-4">
       <div className="relative h-[40px] rounded-full border-[4px] border-[#5b3a3f] bg-gradient-to-r from-[#ffd6e3] via-white to-[#d9f6ea]">
         <div className="absolute top-1/2 left-1/2 h-[46px] w-[4px] -translate-x-1/2 -translate-y-1/2 bg-[#5b3a3f]/40" />
         <div
@@ -200,5 +202,5 @@ function PosePreview({ runner }: { runner: GameRunner }) {
     draw();
     return () => cancelAnimationFrame(raf);
   }, [runner]);
-  return <canvas ref={ref} width={600} height={400} className="block h-[400px] w-[600px] rounded-[22px] border-[4px] border-[#5b3a3f]" aria-label="Mirrored camera preview" />;
+  return <canvas ref={ref} width={492} height={300} className="block h-[300px] w-[492px] rounded-[22px] border-[4px] border-[#5b3a3f]" aria-label="Mirrored camera preview" />;
 }

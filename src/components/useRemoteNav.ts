@@ -45,12 +45,11 @@ export function useRemoteNav(root: RefObject<HTMLElement | null>, enabled: boole
     if (!enabled) return;
     const el = root.current;
     if (!el) return;
-    // Land focus on the screen's primary control when the screen changes.
+    // Land focus on the primary control whenever the screen (or its step) changes.
     const t = setTimeout(() => {
       const items = focusables(el);
       const primary = items.find((i) => i.dataset.primary !== undefined) ?? items[0];
-      if (primary && !el.contains(document.activeElement)) primary.focus({ preventScroll: true });
-      else if (primary && document.activeElement && !items.includes(document.activeElement as HTMLElement)) primary.focus({ preventScroll: true });
+      primary?.focus({ preventScroll: true });
     }, 30);
     const onKey = (e: KeyboardEvent) => {
       if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
