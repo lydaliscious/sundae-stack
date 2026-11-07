@@ -79,7 +79,7 @@ export function addSpeckles(
   const added: Speckle[] = [];
   const zoneOffset = rng.int(0, SPECKLE_ZONES.length);
   for (let i = 0; i < count; i++) {
-    const r = rng.range(0.045, 0.08);
+    const r = rng.range(0.06, 0.095);
     let placed: { x: number; y: number } | null = null;
     for (let attempt = 0; attempt < 24 && !placed; attempt++) {
       const zone = SPECKLE_ZONES[(zoneOffset + i + Math.floor(attempt / 6)) % SPECKLE_ZONES.length];

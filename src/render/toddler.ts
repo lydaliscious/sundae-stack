@@ -175,13 +175,13 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
     ctx.fill();
   }
 
-  // Hair tuft curling up from the crown (behind the head outline).
+  // Hair tuft curling out beside the bowl's foot (behind the head outline).
   const bob = Math.sin(p.time * 5) * 3 + p.bounce * 0.15;
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(-R * 0.05, -R * 0.9);
-  ctx.bezierCurveTo(-R * 0.1, -R * 1.25 + bob, R * 0.3, -R * 1.3 + bob, R * 0.22, -R * 1.08 + bob);
-  ctx.bezierCurveTo(R * 0.16, -R * 0.98 + bob, R * 0.04, -R * 1.04 + bob, R * 0.1, -R * 1.12 + bob);
+  ctx.moveTo(-R * 0.5, -R * 0.8);
+  ctx.bezierCurveTo(-R * 0.62, -R * 1.18 + bob, -R * 1.05, -R * 1.12 + bob, -R * 0.95, -R * 0.9 + bob);
+  ctx.bezierCurveTo(-R * 0.88, -R * 0.78 + bob, -R * 0.74, -R * 0.88 + bob, -R * 0.82, -R * 0.98 + bob);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 17;
   ctx.stroke();
@@ -189,9 +189,16 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
   ctx.lineWidth = 10;
   ctx.stroke();
 
-  // Head.
-  circle(ctx, 0, 0, R);
-  fillInk(ctx, radial(ctx, -R * 0.35, -R * 0.4, R * 0.1, 0, 0, R * 1.15, [[0, SKIN.light], [0.6, SKIN.base], [1, SKIN.shade]]), INK, 6);
+  // Head: a round skull with chubby cheeks bulging a little at the sides. Stroking the union
+  // first and filling over it leaves only the outer half of the outline visible.
+  headPath(ctx, R);
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = INK;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+  headPath(ctx, R);
+  ctx.fillStyle = radial(ctx, -R * 0.35, -R * 0.4, R * 0.1, 0, 0, R * 1.15, [[0, SKIN.light], [0.6, SKIN.base], [1, SKIN.shade]]);
+  ctx.fill();
 
   // Hair cap with a soft fringe.
   ctx.save();
@@ -212,9 +219,14 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
   ctx.fill();
   ctx.restore();
   circle(ctx, 0, 0, R);
+  ctx.save();
+  ctx.clip();
   ctx.lineWidth = 6;
   ctx.strokeStyle = INK;
+  ctx.beginPath();
+  ctx.arc(0, 0, R, Math.PI * 1.08, Math.PI * 1.92);
   ctx.stroke();
+  ctx.restore();
 
   drawFace(ctx, R, p);
 
@@ -224,6 +236,15 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
     drawSpeckle(ctx, speckle, R, scale);
   }
   ctx.restore();
+}
+
+function headPath(ctx: Ctx, R: number) {
+  ctx.beginPath();
+  ctx.arc(0, 0, R, 0, Math.PI * 2);
+  for (const side of [-1, 1]) {
+    ctx.moveTo(side * R * 0.5 + R * 0.5, R * 0.36);
+    ctx.ellipse(side * R * 0.5, R * 0.36, R * 0.5, R * 0.46, 0, 0, Math.PI * 2);
+  }
 }
 
 function drawFace(ctx: Ctx, R: number, p: ToddlerPose) {
