@@ -28,6 +28,27 @@ export function withTimeout<T>(p: Promise<T>, ms: number, message: string): Prom
   });
 }
 
+type ZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number } };
+
+/**
+ * Asks for the widest view where the camera exposes zoom, so the whole body stays in frame.
+ * Never fails the open. macOS Center Stage is applied by the OS and has no web control.
+ */
+async function widestView(stream: MediaStream): Promise<void> {
+  const track = stream.getVideoTracks()[0];
+  const caps = track?.getCapabilities?.() as ZoomCapabilities | undefined;
+  if (!track || !caps?.zoom) {
+    console.info("[sundae] camera zoom: not controllable from the page");
+    return;
+  }
+  try {
+    await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min } as MediaTrackConstraintSet] });
+    console.info(`[sundae] camera zoom: set to minimum (${caps.zoom.min})`);
+  } catch (err) {
+    console.info("[sundae] camera zoom: couldn't apply", err);
+  }
+}
+
 /** Little's governed camera when granted; plain getUserMedia otherwise (local dev, browsers). */
 export async function openCamera(): Promise<CameraHandle> {
   const app = littleApp();
@@ -35,6 +56,7 @@ export async function openCamera(): Promise<CameraHandle> {
     const grant = await withTimeout(app.media.camera({ facing: "user", ...CONSTRAINTS }), OPEN_TIMEOUT_MS, "The camera didn't start.");
     console.info("[sundae] Little camera:", grant.ok ? "granted" : grant.error?.code);
     if (grant.ok) {
+      await widestView(grant.stream);
       let stopped = false;
       return {
         stream: grant.stream,
@@ -60,6 +82,7 @@ export async function openCamera(): Promise<CameraHandle> {
       },
       audio: false,
     }), OPEN_TIMEOUT_MS, "The camera didn't start.");
+    await widestView(stream);
     let stopped = false;
     return {
       stream,
