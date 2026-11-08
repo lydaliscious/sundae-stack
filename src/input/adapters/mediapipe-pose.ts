@@ -78,10 +78,12 @@ const vis = (l: NormalizedLandmark | undefined) => (l ? (l.visibility ?? 0) : 0)
 export function sampleFromLandmarks(poses: NormalizedLandmark[][], t: number): PoseSample {
   const people = poses.filter((p) => Math.max(vis(p[11]), vis(p[12]), vis(p[LEFT_HIP]), vis(p[RIGHT_HIP])) >= PERSON_VISIBILITY).length;
   const body = poses[0];
-  if (!body || people === 0) return { t, x: NaN, y: NaN, confidence: 0, people: 0 };
+  if (!body) return { t, x: NaN, y: NaN, confidence: 0, people: 0 };
+  const keypoints: PreviewPoint[] = BLAZE_TO_COCO.map((i) => ({ x: mirrorX(body[i].x), y: body[i].y, score: vis(body[i]) }));
+  // Keep the faint points for the debug silhouette even when they don't count as a person.
+  if (people === 0) return { t, x: NaN, y: NaN, confidence: 0, people: 0, keypoints };
   const l = body[LEFT_HIP];
   const r = body[RIGHT_HIP];
-  const keypoints: PreviewPoint[] = BLAZE_TO_COCO.map((i) => ({ x: mirrorX(body[i].x), y: body[i].y, score: vis(body[i]) }));
   return {
     t,
     x: mirrorX(hipMidpoint(l, r)),

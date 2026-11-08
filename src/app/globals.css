@@ -177,13 +177,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Retro candy-box lettering: cream letters, a candy-red outline and a deep-red 3D drop. */
 .candy-title {
-  color: #ff5f8f;
-  -webkit-text-stroke: 3px #5b3a3f;
+  color: #fffaf0;
+  -webkit-text-stroke: 5px #d8293c;
   paint-order: stroke fill;
   text-shadow:
-    0 8px 0 #ffd0de,
-    0 12px 0 rgba(91, 58, 63, 0.25);
+    0 6px 0 #d8293c,
+    0 11px 0 #a31a2a,
+    0 18px 10px rgba(91, 58, 63, 0.25);
 }
 
 .hud-card {

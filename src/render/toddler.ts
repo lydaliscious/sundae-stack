@@ -1,6 +1,6 @@
 import { FACE, type Speckle } from "@/game/speckles";
-import { FLAVOR, HAIR, INK, ROMPER, SHOE, SKIN } from "./palette";
-import { circle, ellipse, fillInk, radial, type Ctx } from "./shapes";
+import { FLAVOR, HAIR, INK, IRIS, PANTS, ROMPER, SHOE, SKIN } from "./palette";
+import { circle, ellipse, fillInk, radial, star, type Ctx } from "./shapes";
 
 export type Expression = "mischief" | "happy" | "excited" | "proud" | "surprised" | "giggle" | "worried" | "focused";
 
@@ -60,8 +60,8 @@ export function drawToddlerBody(ctx: Ctx, p: ToddlerPose) {
     const shift = side * step * 7;
     const lx = side * 30 + shift;
     ctx.beginPath();
-    ctx.roundRect(lx - 19, -78 - lift, 38, 62, 18);
-    fillInk(ctx, SKIN.base, INK, 5);
+    ctx.roundRect(lx - 20, -80 - lift, 40, 64, 16);
+    fillInk(ctx, PANTS.base, INK, 5);
     ellipse(ctx, lx + side * 4, -16 - lift, 34, 19);
     fillInk(ctx, radial(ctx, lx - 6, -24 - lift, 2, lx, -16 - lift, 36, [[0, SHOE.light], [1, SHOE.base]]), INK, 5);
     ctx.fillStyle = SHOE.sole;
@@ -81,10 +81,12 @@ export function drawToddlerBody(ctx: Ctx, p: ToddlerPose) {
   ctx.save();
   ctx.translate(0, -122);
   ctx.scale(breathe, breathe);
+  // Pants seat.
   for (const side of [-1, 1]) {
     ellipse(ctx, side * 34, 52, 34, 22);
-    fillInk(ctx, ROMPER.base, INK, 5);
+    fillInk(ctx, PANTS.base, INK, 5);
   }
+  // Blue long-sleeve top with a white star on the chest.
   ctx.beginPath();
   ctx.moveTo(-58, -58);
   ctx.bezierCurveTo(-92, -10, -92, 52, -40, 62);
@@ -93,21 +95,15 @@ export function drawToddlerBody(ctx: Ctx, p: ToddlerPose) {
   ctx.quadraticCurveTo(0, -78, -58, -58);
   ctx.closePath();
   fillInk(ctx, radial(ctx, -26, -30, 6, 0, 0, 100, [[0, ROMPER.light], [0.6, ROMPER.base], [1, ROMPER.dark]]), INK, 6);
-  // Bib pocket with a heart.
+  // Hem.
+  ctx.strokeStyle = "rgba(30, 40, 90, 0.35)";
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.roundRect(-30, -12, 60, 42, 14);
-  fillInk(ctx, ROMPER.pocket, INK, 4);
-  ctx.fillStyle = "#ff7d9c";
-  ctx.beginPath();
-  ctx.moveTo(0, 18);
-  ctx.bezierCurveTo(-16, 6, -12, -6, 0, 2);
-  ctx.bezierCurveTo(12, -6, 16, 6, 0, 18);
-  ctx.fill();
-  // Buttons.
-  for (const side of [-1, 1]) {
-    circle(ctx, side * 34, -40, 6);
-    fillInk(ctx, "#fff6d8", INK, 3);
-  }
+  ctx.moveTo(-66, 44);
+  ctx.quadraticCurveTo(0, 58, 66, 44);
+  ctx.stroke();
+  star(ctx, 8, 2, 30, 0.45, 5, -0.12);
+  fillInk(ctx, ROMPER.star, "rgba(30, 40, 90, 0.35)", 3);
   ctx.restore();
   ctx.restore();
 }
@@ -129,13 +125,13 @@ export function drawToddlerArmsAndHead(ctx: Ctx, p: ToddlerPose) {
     ctx.moveTo(shx, shoulderY);
     ctx.quadraticCurveTo(ex, ey, hx, handY);
     ctx.strokeStyle = INK;
-    ctx.lineWidth = 42;
+    ctx.lineWidth = 44;
     ctx.stroke();
-    ctx.strokeStyle = SKIN.base;
-    ctx.lineWidth = 32;
+    // Long sleeves.
+    ctx.strokeStyle = ROMPER.base;
+    ctx.lineWidth = 34;
     ctx.stroke();
-    // Puffy sleeve.
-    circle(ctx, shx + side * 4, shoulderY + 6, 30);
+    circle(ctx, shx + side * 4, shoulderY + 6, 28);
     fillInk(ctx, ROMPER.base, INK, 5);
   }
 
@@ -166,30 +162,20 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
   ctx.translate(hx, hy);
   ctx.rotate(p.lean * 0.6 + p.headTilt);
 
-  // Ears.
-  for (const side of [-1, 1]) {
-    circle(ctx, side * R * 0.96, R * 0.08, R * 0.2);
-    fillInk(ctx, SKIN.base, INK, 5);
-    circle(ctx, side * R * 0.98, R * 0.08, R * 0.1);
-    ctx.fillStyle = SKIN.shade;
-    ctx.fill();
-  }
+  const hairFill = () => radial(ctx, -R * 0.35, -R * 1.0, 4, 0, -R * 0.3, R * 1.3, [[0, HAIR.light], [0.6, HAIR.base], [1, HAIR.dark]]);
 
-  // Hair tuft curling out beside the bowl's foot (behind the head outline).
-  const bob = Math.sin(p.time * 5) * 3 + p.bounce * 0.15;
-  ctx.lineCap = "round";
+  // The back of a dark bowl cut: a rounded helmet that covers the ears and stops at the cheeks.
   ctx.beginPath();
-  ctx.moveTo(-R * 0.5, -R * 0.8);
-  ctx.bezierCurveTo(-R * 0.62, -R * 1.18 + bob, -R * 1.05, -R * 1.12 + bob, -R * 0.95, -R * 0.9 + bob);
-  ctx.bezierCurveTo(-R * 0.88, -R * 0.78 + bob, -R * 0.74, -R * 0.88 + bob, -R * 0.82, -R * 0.98 + bob);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 17;
-  ctx.stroke();
-  ctx.strokeStyle = HAIR.base;
-  ctx.lineWidth = 10;
-  ctx.stroke();
+  ctx.moveTo(-R * 1.04, R * 0.26);
+  ctx.bezierCurveTo(-R * 1.24, -R * 0.55, -R * 0.68, -R * 1.2, 0, -R * 1.16);
+  ctx.bezierCurveTo(R * 0.68, -R * 1.2, R * 1.24, -R * 0.55, R * 1.04, R * 0.26);
+  ctx.quadraticCurveTo(R * 0.94, R * 0.34, R * 0.84, R * 0.24);
+  ctx.lineTo(-R * 0.84, R * 0.24);
+  ctx.quadraticCurveTo(-R * 0.94, R * 0.34, -R * 1.04, R * 0.26);
+  ctx.closePath();
+  fillInk(ctx, hairFill(), INK, 7);
 
-  // Head: a round skull with chubby cheeks bulging a little at the sides. Stroking the union
+  // Head: a round face with chubby cheeks bulging a little at the sides. Stroking the union
   // first and filling over it leaves only the outer half of the outline visible.
   headPath(ctx, R);
   ctx.lineWidth = 12;
@@ -200,31 +186,36 @@ function drawHead(ctx: Ctx, hx: number, hy: number, p: ToddlerPose) {
   ctx.fillStyle = radial(ctx, -R * 0.35, -R * 0.4, R * 0.1, 0, 0, R * 1.15, [[0, SKIN.light], [0.6, SKIN.base], [1, SKIN.shade]]);
   ctx.fill();
 
-  // Hair cap with a soft fringe.
+  // Straight-cut bangs and side hair over the face, with a soft shine.
   ctx.save();
-  circle(ctx, 0, 0, R - 3);
+  headPath(ctx, R);
   ctx.clip();
-  ctx.beginPath();
-  ctx.moveTo(-R, -R * 0.25);
-  ctx.bezierCurveTo(-R * 0.9, -R * 1.2, R * 0.9, -R * 1.2, R, -R * 0.25);
-  const bumps = 6;
-  for (let i = 0; i < bumps; i++) {
-    const xa = R - (2 * R * i) / bumps;
-    const xb = R - (2 * R * (i + 1)) / bumps;
-    const dip = i === 2 || i === 3 ? -R * 0.62 : -R * 0.42 - Math.abs(i - 2.5) * R * 0.02;
-    ctx.quadraticCurveTo((xa + xb) / 2, dip + R * 0.16, xb, dip);
-  }
-  ctx.closePath();
-  ctx.fillStyle = radial(ctx, -R * 0.3, -R * 0.9, 4, 0, -R * 0.6, R, [[0, HAIR.light], [1, HAIR.base]]);
+  const bangs = () => {
+    ctx.beginPath();
+    ctx.moveTo(-R * 1.2, R * 0.24);
+    ctx.lineTo(-R * 1.2, -R * 1.3);
+    ctx.lineTo(R * 1.2, -R * 1.3);
+    ctx.lineTo(R * 1.2, R * 0.24);
+    ctx.lineTo(R * 0.86, R * 0.24);
+    ctx.bezierCurveTo(R * 0.88, -R * 0.08, R * 0.8, -R * 0.32, R * 0.62, -R * 0.42);
+    ctx.quadraticCurveTo(R * 0.3, -R * 0.36, 0, -R * 0.44);
+    ctx.quadraticCurveTo(-R * 0.3, -R * 0.36, -R * 0.62, -R * 0.42);
+    ctx.bezierCurveTo(-R * 0.8, -R * 0.32, -R * 0.88, -R * 0.08, -R * 0.86, R * 0.24);
+    ctx.closePath();
+  };
+  bangs();
+  ctx.fillStyle = hairFill();
   ctx.fill();
-  ctx.restore();
-  circle(ctx, 0, 0, R);
-  ctx.save();
-  ctx.clip();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = INK;
+  ctx.strokeStyle = "rgba(255, 235, 220, 0.28)";
+  ctx.lineWidth = R * 0.07;
+  ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.arc(0, 0, R, Math.PI * 1.08, Math.PI * 1.92);
+  ctx.arc(0, -R * 0.15, R * 0.78, Math.PI * 1.24, Math.PI * 1.5);
+  ctx.stroke();
+  bangs();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 6;
+  ctx.lineJoin = "round";
   ctx.stroke();
   ctx.restore();
 
@@ -305,7 +296,7 @@ function drawFace(ctx: Ctx, R: number, p: ToddlerPose) {
     const lx = ex + p.look.x * rx * 0.38;
     const ly = ey + p.look.y * ry * 0.34;
     ellipse(ctx, lx, ly, rx * 0.78, ry * 0.74);
-    ctx.fillStyle = radial(ctx, lx, ly + ry * 0.3, 2, lx, ly, ry * 0.8, [[0, "#8a5a3c"], [1, "#3b2320"]]);
+    ctx.fillStyle = radial(ctx, lx, ly + ry * 0.3, 2, lx, ly, ry * 0.8, [[0, IRIS.light], [1, IRIS.dark]]);
     ctx.fill();
     circle(ctx, lx, ly, rx * 0.42);
     ctx.fillStyle = "#1d1114";
@@ -390,14 +381,15 @@ function drawMouth(ctx: Ctx, R: number, e: ToddlerPose["expression"], t: number)
       ctx.fillStyle = "#ff8aa0";
       ctx.fill();
       return;
-    default: {
-      // Delighted, slightly mischievous lopsided grin.
+    default:
+      // A soft, sweet smile.
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 6;
       ctx.beginPath();
-      ctx.moveTo(mx - R * 0.15, my - R * 0.02);
-      ctx.quadraticCurveTo(mx - R * 0.02, my + R * 0.14, mx + R * 0.16, my - R * 0.07);
-      ctx.quadraticCurveTo(mx + R * 0.02, my + R * 0.05, mx - R * 0.15, my - R * 0.02);
-      fillInk(ctx, "#8c2f43", INK, 5);
-    }
+      ctx.moveTo(mx - R * 0.13, my - R * 0.03);
+      ctx.quadraticCurveTo(mx, my + R * 0.1, mx + R * 0.13, my - R * 0.03);
+      ctx.stroke();
+      return;
   }
 }
 

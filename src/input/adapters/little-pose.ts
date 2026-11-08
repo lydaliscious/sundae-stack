@@ -13,7 +13,9 @@ const MIN_BODY_SCORE = 0.25;
 export function sampleFromPoseFrame(frame: PoseFrame, t: number): PoseSample {
   const l = frame.keypoints[LEFT_HIP];
   const r = frame.keypoints[RIGHT_HIP];
-  if (!l || !r || frame.score < MIN_BODY_SCORE) return { t, x: NaN, y: NaN, confidence: 0, people: 0 };
+  const keypoints = frame.keypoints.map((k) => ({ x: mirrorX(k.x), y: k.y, score: k.score }));
+  // Keep the faint points for the debug silhouette even when they don't count as a body.
+  if (!l || !r || frame.score < MIN_BODY_SCORE) return { t, x: NaN, y: NaN, confidence: 0, people: 0, keypoints };
   return {
     t,
     x: mirrorX(hipMidpoint(l, r)),
@@ -21,7 +23,7 @@ export function sampleFromPoseFrame(frame: PoseFrame, t: number): PoseSample {
     confidence: Math.min(l.score, r.score),
     // Little streams one body; switching bodies shows up as a jump, which the monitor catches.
     people: 1,
-    keypoints: frame.keypoints.map((k) => ({ x: mirrorX(k.x), y: k.y, score: k.score })),
+    keypoints,
   };
 }
 

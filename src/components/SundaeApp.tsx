@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { GameRunner } from "@/engine/runner";
 import { setCanvasFont } from "@/render/shapes";
 import { Calibration } from "./Calibration";
+import { DebugSilhouette } from "./DebugSilhouette";
 import { FitStage } from "./FitStage";
 import { Hud } from "./Hud";
 import { LittleBridge } from "./LittleBridge";
@@ -135,6 +136,7 @@ export default function SundaeApp() {
         onSound={() => runner.toggleSound()}
         onMenu={() => runner.toMenu()}
       />
+      <DebugSilhouette runner={runner} />
       <LittleBridge runner={runner} screen={ui.screen} paused={ui.paused} />
     </FitStage>
   );

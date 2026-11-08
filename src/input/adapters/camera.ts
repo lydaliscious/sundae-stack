@@ -7,7 +7,8 @@ export interface CameraHandle {
   source: "little" | "browser";
 }
 
-const CONSTRAINTS = { width: 640, height: 480, fps: 30 };
+// Widescreen keeps the laptop camera's full field of view, so side steps stay in frame.
+const CONSTRAINTS = { width: 1280, height: 720, fps: 30 };
 const OPEN_TIMEOUT_MS = 12_000;
 
 /** Rejects if `p` hasn't settled in time (a camera prompt nobody answers, a host without a device). */

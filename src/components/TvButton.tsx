@@ -7,7 +7,7 @@ import type { ComponentProps } from "react";
 type Tone = "candy" | "mint" | "cream" | "ghost";
 
 const TONES: Record<Tone, string> = {
-  candy: "bg-[#ff5f8f] text-white hover:bg-[#ff4b80] shadow-[0_8px_0_#c43a66]",
+  candy: "bg-[#e5323f] text-[#fffaf0] hover:bg-[#d8293c] shadow-[0_8px_0_#a31a2a]",
   mint: "bg-[#7fd8b4] text-[#2f4a40] hover:bg-[#6fd0a9] shadow-[0_8px_0_#4fa984]",
   cream: "bg-[#fff8f1] text-[#5b3a3f] hover:bg-white shadow-[0_8px_0_rgba(91,58,63,0.25)]",
   ghost: "bg-white/70 text-[#5b3a3f] hover:bg-white shadow-[0_6px_0_rgba(91,58,63,0.2)]",

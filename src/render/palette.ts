@@ -27,10 +27,13 @@ export const SPRINKLE_COLORS = ["#ff6f91", "#ffc75f", "#57c7ff", "#8be08b", "#b3
 export const INK = "#5b3a3f";
 export const INK_SOFT = "rgba(91, 58, 63, 0.55)";
 
-export const SKIN = { base: "#ffd9c0", light: "#ffe9da", shade: "#f4b99c", blush: "rgba(255, 122, 146, 0.38)" };
-export const HAIR = { base: "#9a6242", light: "#c08458" };
-export const ROMPER = { base: "#b9a4f2", light: "#d9ccff", dark: "#8f78d8", pocket: "#ffd4e2" };
-export const SHOE = { base: "#ff8fa8", light: "#ffc2cf", sole: "#fff4f6" };
+export const SKIN = { base: "#ffd9c0", light: "#ffe9da", shade: "#f4b99c", blush: "rgba(255, 112, 138, 0.42)" };
+export const HAIR = { base: "#3d2a22", light: "#62463a", dark: "#2a1c17" };
+export const IRIS = { light: "#6e4a36", dark: "#21140e" };
+/** Blue long-sleeve top with a white star. */
+export const ROMPER = { base: "#3f63c9", light: "#6d8de4", dark: "#2c49a1", star: "#f4f7ff" };
+export const PANTS = { base: "#3a3d72", light: "#555a99" };
+export const SHOE = { base: "#ffffff", light: "#ffffff", sole: "#dfe2ee" };
 export const BOWL = { glass: "#bfe7ff", glassLight: "#e9f7ff", glassDark: "#8fcdf2", band: "#ff9ec2", bandDark: "#f2759f" };
 
 export const CHERRY = { base: "#f0304f", light: "#ff7a8c", dark: "#a8132f", stem: "#5b8a3a", leaf: "#7cc35a" };

@@ -12,7 +12,7 @@ const STEPS = [
   { id: "center", title: "Stand in the middle", body: "Face the TV and hold still for a moment." },
   { id: "left", title: "Take a comfy step left", body: "One easy step to your left, then hold still." },
   { id: "right", title: "Now a step right", body: "Step across to your right and hold still." },
-  { id: "test", title: "Try it out!", body: "Step around: the toddler follows you." },
+  { id: "test", title: "Try it out!", body: "One step takes the toddler halfway, two steps all the way to the edge." },
 ] as const;
 
 export function Calibration({

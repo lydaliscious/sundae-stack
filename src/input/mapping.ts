@@ -29,15 +29,18 @@ export interface Calibration {
 }
 
 export const CALIBRATION_LIMITS = {
-  /** Smallest half-range accepted on either side: tiny steps would make the game twitchy. */
+  /** Smallest recorded step accepted on either side: tiny steps would make the game twitchy. */
   minHalfRange: 0.04,
-  /** Half-range used when calibration is skipped. */
-  defaultHalfRange: 0.14,
+  /** Half-range (centre to edge) used when calibration is skipped: about two steps. */
+  defaultHalfRange: 0.24,
+  /** How many recorded steps it takes to reach the edge: one step lands halfway. */
+  stepsToEdge: 2,
 };
 
 /**
  * Builds a calibration from the three recorded positions. Handles a reversed camera (left/right
- * swapped) and enforces a minimum range on each side so a timid step still works.
+ * swapped) and enforces a minimum step on each side so a timid step still works. The recorded
+ * step lands halfway; `stepsToEdge` steps reach the edge.
  */
 export function makeCalibration(center: number, left: number, right: number): Calibration {
   let flipped = false;
@@ -52,7 +55,8 @@ export function makeCalibration(center: number, left: number, right: number): Ca
   const min = CALIBRATION_LIMITS.minHalfRange;
   if (c - l < min) l = c - min;
   if (r - c < min) r = c + min;
-  return { center: c, left: l, right: r, flipped };
+  const k = CALIBRATION_LIMITS.stepsToEdge;
+  return { center: c, left: c - (c - l) * k, right: c + (r - c) * k, flipped };
 }
 
 export function defaultCalibration(center = 0.5): Calibration {

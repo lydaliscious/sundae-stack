@@ -11,7 +11,7 @@ export interface MovementConfig {
   maxX: number;
 }
 
-export const DEFAULT_MOVEMENT: MovementConfig = { deadband: 0.025, tau: 0.085, keySpeed: 2.1, minX: 240, maxX: 1680 };
+export const DEFAULT_MOVEMENT: MovementConfig = { deadband: 0.015, tau: 0.05, keySpeed: 2.1, minX: 240, maxX: 1680 };
 
 /**
  * The single movement path for every input: a target position in unit space (absolute, from a

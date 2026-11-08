@@ -18,7 +18,7 @@ import type { PoseInputAdapter, PoseSample } from "@/input/adapters/types";
 import { CalibrationFlow } from "@/input/calibration";
 import { defaultCalibration, toUnit, type Calibration } from "@/input/mapping";
 import { DEFAULT_MOVEMENT, Movement } from "@/input/movement";
-import { TrackingMonitor } from "@/input/tracking";
+import { DEFAULT_TRACKING, TrackingMonitor } from "@/input/tracking";
 import { can, emit, isHosted, littleApp } from "@/little/host";
 import { Renderer, type Scene } from "@/render/renderer";
 import { describeSundae, sundaeThumbnail } from "@/render/thumbnail";
@@ -28,6 +28,13 @@ import { initialHud, sameHud, Store, type Banner, type Hud, type Mode, type UiSt
 export const STEP = 1 / 120;
 const MAX_STEPS_PER_FRAME = 12;
 const POSE_FIRST_FRAME_TIMEOUT_MS = 4000;
+/** Little's pose stream must produce at least one confident hip reading this soon, or we use the on-device tracker. */
+const POSE_QUALITY_TIMEOUT_MS = 8000;
+/**
+ * In development (`little dev`), Little's pose runs remotely and lags, so the on-device tracker goes
+ * first. On a television the host's pose runs on the device, so production keeps Little first.
+ */
+const PREFER_ON_DEVICE = process.env.NODE_ENV !== "production";
 const RESULTS_DELAY_MS = 900;
 
 const BEST_KEY = "sundae-stack:best";
@@ -397,29 +404,37 @@ export class GameRunner {
     };
     this.adapterStart = (async () => {
       try {
+        if (PREFER_ON_DEVICE && (await this.startMediaPipe(token, onSample))) return;
+        if (token !== this.adapterToken) return;
         if (isHosted() && can("sense.pose")) {
           const little = new LittlePoseAdapter();
           let first: () => void = () => {};
+          let confident = false;
           const gotFrame = new Promise<void>((resolve) => (first = resolve));
           await little.start((s) => {
             first();
+            if (s.confidence >= DEFAULT_TRACKING.minConfidence) confident = true;
             onSample(s);
           });
           const ok = await Promise.race([gotFrame.then(() => true), sleep(POSE_FIRST_FRAME_TIMEOUT_MS).then(() => false)]);
           if (token !== this.adapterToken) return little.stop();
           if (ok) {
             this.adapter = little;
-            this.store.set((s) => ({ tracking: { ...s.tracking, source: "little-pose", starting: false } }));
+            this.store.set((s) => ({ tracking: { ...s.tracking, source: "little-pose", starting: false, error: null } }));
+            // Frames that never find the hips (a zoomed-in or remote stream) would leave setup stuck.
+            setTimeout(() => {
+              if (token !== this.adapterToken || this.adapter !== little || confident) return;
+              little.stop();
+              this.adapter = null;
+              this.monitor.reset();
+              void this.startMediaPipe(token, onSample);
+            }, POSE_QUALITY_TIMEOUT_MS);
             return;
           }
           // Granted but silent (e.g. `little dev` without realtime services): use the camera.
           little.stop();
         }
-        const mp = new MediaPipePoseAdapter();
-        await mp.start(onSample);
-        if (token !== this.adapterToken) return mp.stop();
-        this.adapter = mp;
-        this.store.set((s) => ({ tracking: { ...s.tracking, source: "mediapipe", starting: false } }));
+        if (!PREFER_ON_DEVICE) await this.startMediaPipe(token, onSample);
       } catch (err) {
         if (token !== this.adapterToken) return;
         const message = err instanceof Error ? err.message : "Couldn't start body tracking.";
@@ -429,6 +444,27 @@ export class GameRunner {
       }
     })();
     return this.adapterStart;
+  }
+
+  /** On-device MediaPipe Pose on a camera opened through Little (or getUserMedia in a browser). */
+  private async startMediaPipe(token: number, onSample: (sample: PoseSample) => void): Promise<boolean> {
+    this.store.set((s) => ({ tracking: { ...s.tracking, starting: true, error: null, status: "searching" } }));
+    try {
+      const mp = new MediaPipePoseAdapter();
+      await mp.start(onSample);
+      if (token !== this.adapterToken) {
+        mp.stop();
+        return false;
+      }
+      this.adapter = mp;
+      this.store.set((s) => ({ tracking: { ...s.tracking, source: "mediapipe", starting: false } }));
+      return true;
+    } catch (err) {
+      if (token !== this.adapterToken) return false;
+      const message = err instanceof Error ? err.message : "Couldn't start body tracking.";
+      this.store.set((s) => ({ tracking: { ...s.tracking, starting: false, error: message, status: "off" } }));
+      return false;
+    }
   }
 
   private stopAdapter() {

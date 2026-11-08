@@ -30,17 +30,19 @@ describe("mirroring", () => {
 });
 
 describe("calibration mapping", () => {
-  it("maps centre, left and right to the middle and the edges", () => {
+  it("one recorded step lands halfway; two steps reach the edge", () => {
     const cal = makeCalibration(0.5, 0.4, 0.62);
     expect(toUnit(0.5, cal)).toBe(0);
-    expect(toUnit(0.4, cal)).toBe(-1);
-    expect(toUnit(0.62, cal)).toBe(1);
+    expect(toUnit(0.4, cal)).toBeCloseTo(-0.5);
+    expect(toUnit(0.62, cal)).toBeCloseTo(0.5);
+    expect(toUnit(0.3, cal)).toBeCloseTo(-1);
+    expect(toUnit(0.74, cal)).toBeCloseTo(1);
     // Proportional on each side (asymmetric ranges allowed).
-    expect(toUnit(0.45, cal)).toBeCloseTo(-0.5);
-    expect(toUnit(0.56, cal)).toBeCloseTo(0.5);
-    // Beyond the recorded positions: clamp to the edge.
-    expect(toUnit(0.9, cal)).toBe(1);
-    expect(toUnit(0.1, cal)).toBe(-1);
+    expect(toUnit(0.45, cal)).toBeCloseTo(-0.25);
+    expect(toUnit(0.56, cal)).toBeCloseTo(0.25);
+    // Beyond two steps: clamp to the edge.
+    expect(toUnit(0.95, cal)).toBe(1);
+    expect(toUnit(0.05, cal)).toBe(-1);
   });
 
   it("is absolute: the same stance always gives the same position", () => {
@@ -52,18 +54,20 @@ describe("calibration mapping", () => {
     expect(out[0]).toBe(0);
   });
 
-  it("covers the full playable width with small physical movements", () => {
+  it("covers the full playable width with two small steps each way", () => {
     const cal = makeCalibration(0.5, 0.45, 0.55);
-    expect(unitToWorld(toUnit(0.45, cal), 240, 1680)).toBe(240);
-    expect(unitToWorld(toUnit(0.55, cal), 240, 1680)).toBe(1680);
+    expect(unitToWorld(toUnit(0.45, cal), 240, 1680)).toBeCloseTo(600);
+    expect(unitToWorld(toUnit(0.4, cal), 240, 1680)).toBeCloseTo(240);
+    expect(unitToWorld(toUnit(0.6, cal), 240, 1680)).toBeCloseTo(1680);
     expect(unitToWorld(toUnit(0.5, cal), 240, 1680)).toBe(960);
   });
 
   it("detects a camera that is already mirrored", () => {
     const cal = makeCalibration(0.5, 0.6, 0.4);
     expect(cal.flipped).toBe(true);
-    expect(toUnit(0.6, cal)).toBe(-1);
-    expect(toUnit(0.4, cal)).toBe(1);
+    expect(toUnit(0.6, cal)).toBeCloseTo(-0.5);
+    expect(toUnit(0.4, cal)).toBeCloseTo(0.5);
+    expect(toUnit(0.7, cal)).toBeCloseTo(-1);
     expect(toUnit(0.5, cal)).toBe(0);
   });
 
@@ -256,6 +260,7 @@ describe("calibration capture", () => {
     expect(hold(0.4)).toBe(false);
     expect(hold(0.6)).toBe(true);
     expect(flow.step).toBe("test");
-    expect(flow.calibration).toMatchObject({ left: expect.closeTo(0.42, 2), right: expect.closeTo(0.6, 2), flipped: false });
+    // The recorded steps are halfway: the edges sit two steps out.
+    expect(flow.calibration).toMatchObject({ center: 0.5, left: expect.closeTo(0.34, 2), right: expect.closeTo(0.7, 2), flipped: false });
   });
 });
